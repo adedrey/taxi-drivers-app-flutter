@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 
 class PredictedPlaces {
   String? place_id;

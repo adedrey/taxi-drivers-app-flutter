@@ -20,9 +20,9 @@ void main() async {
       ),
       routes: {
         '/': (context) => const MySplashScreen(),
-        MainScreen.routeName: (context) => MainScreen(),
+        MainScreen.routeName: (context) => const MainScreen(),
         AuthScreen.routeName: (context) => AuthScreen(),
-        CarDetailScreen.routeName: (context) => CarDetailScreen(),
+        CarDetailScreen.routeName: (context) => const CarDetailScreen(),
       },
       debugShowCheckedModeBanner: false,
     ),
@@ -32,7 +32,7 @@ void main() async {
 class MyApp extends StatefulWidget {
   final Widget? child;
 
-  MyApp({this.child});
+  const MyApp({this.child});
 
   static void restartApp(BuildContext context) {
     context.findAncestorStateOfType<_MyAppState>()!.restartApp();

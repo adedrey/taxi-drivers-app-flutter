@@ -4,10 +4,10 @@ import './auth_form.dart';
 
 class CarDetailGuard extends StatefulWidget {
   final void Function(
-    String car_model,
-    String car_no,
-    String car_color,
-    String car_type,
+    String carModel,
+    String carNo,
+    String carColor,
+    String carType,
     AuthMode authMode,
   ) submitFn;
   const CarDetailGuard({
@@ -21,8 +21,8 @@ class CarDetailGuard extends StatefulWidget {
 
 class _CarDetailGuardState extends State<CarDetailGuard> {
   final GlobalKey<FormState> _formKey = GlobalKey();
-  AuthMode _authMode = AuthMode.SIGNUP;
-  Map<String, String> _authData = {
+  final AuthMode _authMode = AuthMode.SIGNUP;
+  final Map<String, String> _authData = {
     'car_model': '',
     'car_no': '',
     'car_color': '',

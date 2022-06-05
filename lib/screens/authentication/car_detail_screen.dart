@@ -16,18 +16,18 @@ class CarDetailScreen extends StatefulWidget {
 
 class _CarDetailScreenState extends State<CarDetailScreen> {
   Future<void> _submitForm(
-    String car_model,
-    String car_no,
-    String car_color,
-    String car_type,
+    String carModel,
+    String carNo,
+    String carColor,
+    String carType,
     AuthMode authMode,
   ) async {
     if (authMode == AuthMode.SIGNUP) {
       Map driverCarInfo = {
-        'car_no': car_no,
-        'car_model': car_model,
-        'car_color': car_color,
-        'car_type': car_type
+        'car_no': carNo,
+        'car_model': carModel,
+        'car_color': carColor,
+        'car_type': carType
       };
       DatabaseReference driverRef =
           FirebaseDatabase.instance.ref().child('drivers');
@@ -48,7 +48,7 @@ class _CarDetailScreenState extends State<CarDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
+      body: SizedBox(
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
         child: Stack(

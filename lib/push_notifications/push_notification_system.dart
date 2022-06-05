@@ -1,14 +1,17 @@
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:drivers_app/global/global.dart';
 import 'package:drivers_app/models/user_ride_request_information.dart';
+import 'package:drivers_app/push_notifications/notification_dialog_box.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class PushNotificationSystem {
   FirebaseMessaging messaging = FirebaseMessaging.instance;
 
-  Future initializeCloudMessaging() async {
+  Future initializeCloudMessaging(BuildContext context) async {
     // Terminated: When the app is completely closed and you receive a notification
     // Open directly from the notification
     FirebaseMessaging.instance
@@ -19,7 +22,8 @@ class PushNotificationSystem {
 
         // Send ride request id
         // display ride request information - user information who request a ride
-        readUserRideReequestInformation(remoteMessage.data["rideRequestId"]);
+        readUserRideReequestInformation(
+            remoteMessage.data["rideRequestId"], context);
       }
     });
 
@@ -28,7 +32,8 @@ class PushNotificationSystem {
       // Display the  user ride request information
       // Send ride request id
       // display ride request information - user information who request a ride
-      readUserRideReequestInformation(remoteMessage!.data["rideRequestId"]);
+      readUserRideReequestInformation(
+          remoteMessage!.data["rideRequestId"], context);
     });
     // Background: When the app is not closed but not in use i.e minimized
     // and it receive a notifcation
@@ -36,12 +41,14 @@ class PushNotificationSystem {
       // Display the  user ride request information
       // Send ride request id
       // display ride request information - user information who request a ride
-      readUserRideReequestInformation(remoteMessage!.data["rideRequestId"]);
+      readUserRideReequestInformation(
+          remoteMessage!.data["rideRequestId"], context);
     });
   }
 
 // Read ride request from Database
-  readUserRideReequestInformation(String userRideRequestId) {
+  readUserRideReequestInformation(
+      String userRideRequestId, BuildContext context) {
 // Get ride request from DB
     FirebaseDatabase.instance
         .ref()
@@ -51,6 +58,9 @@ class PushNotificationSystem {
         .then((snapData) {
       // check if request is not null
       if (snapData.snapshot.value != null) {
+        // Play notification sound
+        audioPlayer.open(Audio("assets/music/music_notification.mp3"));
+        audioPlayer.play();
         // retrieve data
         // Get Origin Details
         double originLatitude = double.parse(
@@ -81,6 +91,11 @@ class PushNotificationSystem {
         userRideRequestInformation.userName = userName;
         userRideRequestInformation.userPhone = userPhone;
         userRideRequestInformation.rideRequestId = userRideRequestId;
+        showDialog(
+          context: context,
+          builder: (context) => NotificationDialogBox(
+              userRideRequestInformation: userRideRequestInformation),
+        );
       } else {
         Fluttertoast.showToast(msg: "This Ride Request Id do not exists.");
       }

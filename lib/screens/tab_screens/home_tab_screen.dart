@@ -1,4 +1,3 @@
-import 'package:drivers_app/main.dart';
 import 'package:drivers_app/push_notifications/push_notification_system.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -290,7 +289,7 @@ class _HomeTabScreenState extends State<HomeTabScreen> {
     // ...
     currentFirebaseUser = fAuth.currentUser;
     PushNotificationSystem pushNotificationSystem = PushNotificationSystem();
-    pushNotificationSystem.initializeCloudMessaging();
+    pushNotificationSystem.initializeCloudMessaging(context);
     pushNotificationSystem.generateAndGetToken();
   }
 
