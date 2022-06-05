@@ -59,6 +59,7 @@ class PushNotificationSystem {
       // check if request is not null
       if (snapData.snapshot.value != null) {
         // Play notification sound
+        print("was here");
         audioPlayer.open(Audio("assets/music/music_notification.mp3"));
         audioPlayer.play();
         // retrieve data
@@ -97,6 +98,7 @@ class PushNotificationSystem {
               userRideRequestInformation: userRideRequestInformation),
         );
       } else {
+        print("wasn't was here at all");
         Fluttertoast.showToast(msg: "This Ride Request Id do not exists.");
       }
     });
