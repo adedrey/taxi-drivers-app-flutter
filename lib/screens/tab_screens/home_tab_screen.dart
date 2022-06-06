@@ -28,7 +28,7 @@ class _HomeTabScreenState extends State<HomeTabScreen> {
     target: LatLng(37.42796133580664, -122.085749655962),
     zoom: 14.4746,
   );
-  Position? driverCurrentPosiiton;
+
   var geoLocator = Geolocator();
   LocationPermission? _locationPermission;
   String statusText = "Now Offline";
@@ -126,6 +126,29 @@ class _HomeTabScreenState extends State<HomeTabScreen> {
   void readCurrentDriverInformation() async {
     // ...
     currentFirebaseUser = fAuth.currentUser;
+    FirebaseDatabase.instance
+        .ref()
+        .child("drivers")
+        .child(currentFirebaseUser!.uid)
+        .once()
+        .then((snapShot) {
+      if (snapShot.snapshot.value != null) {
+        onlineDriverData.id = (snapShot.snapshot.value as Map)["id"];
+        onlineDriverData.name = (snapShot.snapshot.value as Map)["name"];
+        onlineDriverData.phone = (snapShot.snapshot.value as Map)["phone"];
+        onlineDriverData.email = (snapShot.snapshot.value as Map)["email"];
+        onlineDriverData.car_color =
+            (snapShot.snapshot.value as Map)["car_details"]["car_color"];
+        onlineDriverData.car_model =
+            (snapShot.snapshot.value as Map)["car_details"]["car_model"];
+        onlineDriverData.car_no =
+            (snapShot.snapshot.value as Map)["car_details"]["car_no"];
+        onlineDriverData.car_type =
+            (snapShot.snapshot.value as Map)["car_details"]["car_type"];
+      } else {
+        Fluttertoast.showToast(msg: "User not available at the moment");
+      }
+    });
     PushNotificationSystem pushNotificationSystem = PushNotificationSystem();
     pushNotificationSystem.initializeCloudMessaging(context);
     pushNotificationSystem.generateAndGetToken();
