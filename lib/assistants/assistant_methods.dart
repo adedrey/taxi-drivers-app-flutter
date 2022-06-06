@@ -1,4 +1,5 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -74,5 +75,25 @@ class AssistantMethods {
     } else {
       return null;
     }
+  }
+
+  // Pause live location of the current user
+  static pauseLiveLocationUpdate() {
+    // Pause streamSubscriptionPosition - pause the Live Location
+    streamSubscriptionPosition!.pause();
+    // Remove driver from list of nearby drivers to users using Geofire
+    Geofire.removeLocation(currentFirebaseUser!.uid);
+  }
+
+  // Resume live location of the current user
+  static resumeLiveLocationUpdate() {
+    // Resume streamSubscriptionPosition - resume the Live Location
+    streamSubscriptionPosition!.resume();
+    // Add driver back to the list of nearby drivers to users using Geofire
+    Geofire.setLocation(
+      currentFirebaseUser!.uid,
+      driverCurrentPosiiton!.latitude,
+      driverCurrentPosiiton!.longitude,
+    );
   }
 }

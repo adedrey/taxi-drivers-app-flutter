@@ -1,4 +1,5 @@
 import 'package:assets_audio_player/assets_audio_player.dart';
+import 'package:drivers_app/assistants/assistant_methods.dart';
 import 'package:drivers_app/global/global.dart';
 import 'package:drivers_app/models/user_ride_request_information.dart';
 import 'package:drivers_app/screens/new_trip_screen.dart';
@@ -42,6 +43,8 @@ class _NotificationDialogBoxState extends State<NotificationDialogBox> {
             .child(currentFirebaseUser!.uid)
             .child("newRideStatus")
             .set("accepted");
+        // Pause Live Location Update
+        AssistantMethods.pauseLiveLocationUpdate();
         // Send driver to newRideScreen to display polyline from driver current location to user pickup location
         // then draw a new route from user pickup location to user destination
         // Trip Started now

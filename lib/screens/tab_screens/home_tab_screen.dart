@@ -87,18 +87,23 @@ class _HomeTabScreenState extends State<HomeTabScreen> {
     // Set streamSubscriptionPosition from Global file to Driver live location
     streamSubscriptionPosition = Geolocator.getPositionStream().listen(
       (Position position) {
+        // set driverCurrentPositon from Global to streamSubscription Position
         driverCurrentPosiiton = position;
+        // Check if driver is ready to receive ride request
         if (isDriverActive == true) {
+          // Activate Geofire
           Geofire.setLocation(
             currentFirebaseUser!.uid,
             driverCurrentPosiiton!.latitude,
             driverCurrentPosiiton!.longitude,
           );
         }
+        // Get driver current LatLng to display on Map
         LatLng latLng = LatLng(
           driverCurrentPosiiton!.latitude,
           driverCurrentPosiiton!.longitude,
         );
+        // Display on Map
         _newGoogleMapController!.animateCamera(
           CameraUpdate.newLatLng(latLng),
         );
