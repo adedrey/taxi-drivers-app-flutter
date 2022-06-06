@@ -81,7 +81,10 @@ class _HomeTabScreenState extends State<HomeTabScreen> {
     });
   }
 
+// Listennto Driver Location At RealTime
+// Then set it to driverCurrentPosiiton
   void _updateDriversLocationAtRealTime() {
+    // Set streamSubscriptionPosition from Global file to Driver live location
     streamSubscriptionPosition = Geolocator.getPositionStream().listen(
       (Position position) {
         driverCurrentPosiiton = position;
@@ -146,7 +149,7 @@ class _HomeTabScreenState extends State<HomeTabScreen> {
         onlineDriverData.car_type =
             (snapShot.snapshot.value as Map)["car_details"]["car_type"];
       } else {
-        Fluttertoast.showToast(msg: "User not available at the moment");
+        Fluttertoast.showToast(msg: "User not available at the moment.");
       }
     });
     PushNotificationSystem pushNotificationSystem = PushNotificationSystem();

@@ -1,5 +1,6 @@
 import 'package:drivers_app/global/global.dart';
 import 'package:drivers_app/models/user_ride_request_information.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -173,6 +174,53 @@ class _NewTripScreenState extends State<NewTripScreen> {
       circleSet.add(originCircle);
       circleSet.add(destinationCircle);
     });
+  }
+
+  // Assign Driver Detail to UserRideRequest in All RIde Request Table - Database
+  saveAssignedDriverDetailsToUserRideRequest() {
+    // Get the rideRequest DatabaseReference
+    DatabaseReference databaseReference = FirebaseDatabase.instance
+        .ref()
+        .child("All Ride Requests")
+        .child(widget.userRideRequestInformation!.rideRequestId!);
+    // Save Driver Current Location
+    Map driverLocationDataMap = {
+      "latitude": driverCurrentPosiiton!.latitude.toString(),
+      "longitude": driverCurrentPosiiton!.longitude.toString(),
+    };
+    // Set driverLocationDataMap on the database
+    databaseReference.child("driverLocation").set(driverLocationDataMap);
+    // Set status field of the databseReference to accepted
+    databaseReference.child("status").set("accepted");
+    // setdriver details
+    databaseReference.child("driverId").set(onlineDriverData.id);
+    databaseReference.child("driverName").set(onlineDriverData.name);
+    databaseReference.child("driverPhone").set(onlineDriverData.phone);
+    databaseReference.child("driverEmail").set(onlineDriverData.email);
+    databaseReference.child("car_details").set(
+        onlineDriverData.car_color.toString() +
+            onlineDriverData.car_model.toString());
+    // Save rideRequestId to driver History
+    saveRideRequestIdToDriverHistory();
+  }
+
+  // Save rideRequestId to driver History
+  saveRideRequestIdToDriverHistory() {
+    DatabaseReference tripsHistoryReference = FirebaseDatabase.instance
+        .ref()
+        .child("drivers")
+        .child(currentFirebaseUser!.uid)
+        .child("tripsHistory");
+    tripsHistoryReference
+        .child(widget.userRideRequestInformation!.rideRequestId!)
+        .set(true);
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    saveAssignedDriverDetailsToUserRideRequest();
   }
 
   @override
