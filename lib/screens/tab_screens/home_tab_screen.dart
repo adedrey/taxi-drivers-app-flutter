@@ -81,7 +81,7 @@ class _HomeTabScreenState extends State<HomeTabScreen> {
     });
   }
 
-// Listennto Driver Location At RealTime
+// Listen to Driver Location At RealTime
 // Then set it to driverCurrentPosiiton
   void _updateDriversLocationAtRealTime() {
     // Set streamSubscriptionPosition from Global file to Driver live location

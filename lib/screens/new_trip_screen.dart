@@ -3,6 +3,7 @@ import 'package:drivers_app/models/user_ride_request_information.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
@@ -47,6 +48,19 @@ class _NewTripScreenState extends State<NewTripScreen> {
   // Add Padding to Map to display Google Logo in order for app to be accepted
   double mapPadding = 0;
 
+  // Define the BitmapDescriptor for driver markup icon to animate move at real time
+  BitmapDescriptor? iconAnimatedMarker;
+  // Inital an instance of the geolocaor
+  var geoLocator = Geolocator();
+
+  // Define online driver live position for the trip
+  Position? onlineDriverCurrentPosition;
+
+  // Driver rideRequestStatus for updating duration to User pickup location
+  String rideRequestStatus = "accepted";
+  String durationFromOriginToDestination = "";
+  bool isRequestDirectionDetails = false;
+
   // Step 1 - Draw PolyLine from Origin to Destination
   // WHen Driver Accept the User Ride Request
   // Get trip direction info from origin to destination and draw the
@@ -83,8 +97,6 @@ class _NewTripScreenState extends State<NewTripScreen> {
     List<PointLatLng> decodedPpointsReultList =
         pPoints.decodePolyline(directionDetailsInfo!.e_points!);
     pLineCoOrdinatesList.clear();
-    print("Decoded List");
-    print(decodedPpointsReultList);
     // Check if decoded points are not empty
     if (decodedPpointsReultList.isNotEmpty) {
       // Insert each decoded points LatLng in pLineCoOrdinates
@@ -96,8 +108,6 @@ class _NewTripScreenState extends State<NewTripScreen> {
         },
       );
     }
-    print("PolyLineList");
-    print(pLineCoOrdinatesList);
     polyLineSet.clear();
     setState(() {
       // Draw the polyLine
@@ -223,8 +233,132 @@ class _NewTripScreenState extends State<NewTripScreen> {
     saveAssignedDriverDetailsToUserRideRequest();
   }
 
+  // Create Driver Marker Icon
+  void _createADriverMarkerIcon() {
+    if (iconAnimatedMarker == null) {
+      ImageConfiguration imageConfiguration =
+          createLocalImageConfiguration(context, size: const Size(1, 1));
+      BitmapDescriptor.fromAssetImage(imageConfiguration, 'assets/img/car.png')
+          .then((value) {
+        iconAnimatedMarker = value;
+      });
+    }
+  }
+
+// Listen to Driver Live Location At RealTime
+// Then set it to driverCurrentPosiiton
+  void getDriverLocationUpdateAtRealTime() {
+    // Initialize LatLng position
+    LatLng oldLatLng = LatLng(0, 0);
+    // Set streamSubscriptionPosition from Global file to Driver live location
+    streamSubscriptionDriverLivePosition =
+        Geolocator.getPositionStream().listen(
+      (Position position) {
+        // set driverCurrentPositon and onlineDriverCurrentPosition from Global to streamSubscription Position
+        driverCurrentPosiiton = position;
+        onlineDriverCurrentPosition = position;
+
+        // Get driver current LatLng to display on Map
+        LatLng latLngLiveDriverPosition = LatLng(
+          onlineDriverCurrentPosition!.latitude,
+          onlineDriverCurrentPosition!.longitude,
+        );
+
+        // Set live animatingMarker of Driver
+        Marker animatingMarker = Marker(
+          markerId: const MarkerId("AnimatedMarker"),
+          position: latLngLiveDriverPosition,
+          icon: iconAnimatedMarker!,
+          infoWindow: const InfoWindow(
+            title: "This is your Position",
+          ),
+        );
+
+        setState(() {
+          CameraPosition cameraPosition = CameraPosition(
+            target: latLngLiveDriverPosition,
+            zoom: 16,
+          );
+          // Display on Map
+          _newTripGoogleMapController!.animateCamera(
+            CameraUpdate.newCameraPosition(cameraPosition),
+          );
+          // Remove previous marker if it exist when the driver change position
+          // where the markerId is AnimatedMarker
+          markersSet.removeWhere(
+              (element) => element.markerId.value == "AnimatedMarker");
+          // Add an updated marker when a new position is gained
+          markersSet.add(animatingMarker);
+        });
+        // Assign driver current position to initialized latLng
+        oldLatLng = latLngLiveDriverPosition;
+        // Get Duration Time at real time
+        updateDurationTimeAtRealTime();
+        // Update the driver location in the DB at real time
+        Map driverLatLngDataMap = {
+          "latitude": onlineDriverCurrentPosition!.latitude.toString(),
+          "longitude": onlineDriverCurrentPosition!.longitude.toString(),
+        };
+        FirebaseDatabase.instance
+            .ref()
+            .child("All Ride Requests")
+            .child(widget.userRideRequestInformation!.rideRequestId!)
+            .child("driverLocation")
+            .set(driverLatLngDataMap);
+      },
+    );
+  }
+
+// Update Driver duration time to reach User pickup location
+// Checks Duration time from driver location to pickup location for step 1
+// Checks Duration time from user pick up location to destination for step 2
+  updateDurationTimeAtRealTime() async {
+    // If request direction is false
+    // Get direction duration only when needed
+    // to prevent lagging
+    if (isRequestDirectionDetails == false) {
+      isRequestDirectionDetails = true;
+
+      // If We couldn't get Driver Location at real time
+      if (onlineDriverCurrentPosition == null) {
+        return;
+      }
+      // Get driver current position
+      LatLng originLatLng = LatLng(onlineDriverCurrentPosition!.latitude,
+          onlineDriverCurrentPosition!.longitude);
+      LatLng? destinationLatLng;
+      // Check if a ride request has being accept
+      if (rideRequestStatus == "accepted") {
+        // Get the user pickup location
+        destinationLatLng = widget.userRideRequestInformation!.originLatLng!;
+      } else {
+        // get the user destination location
+        destinationLatLng =
+            widget.userRideRequestInformation!.destinationLatLng!;
+      }
+      // Get the direction detail information
+      var directionDetailInformation =
+          await AssistantMethods.obtainOriginToDestinationDirectionDetails(
+              originLatLng, destinationLatLng);
+      // Check if its not null
+      if (directionDetailInformation != null) {
+        // Assign the duration time
+        setState(() {
+          durationFromOriginToDestination =
+              directionDetailInformation.duration_text!;
+        });
+      }
+      // After the above code has updated successfully
+      // Set isisRequestDirectionDetails
+      // To prevent lagging
+      isRequestDirectionDetails = false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // To Add Active Driver MarkerIcon
+    _createADriverMarkerIcon();
     return Scaffold(
       body: Stack(
         children: [
@@ -262,6 +396,9 @@ class _NewTripScreenState extends State<NewTripScreen> {
               // Draw the PolyLine
               _drawPolyLineFromOriginToDestination(
                   driverCurrentLatLng, userPickUpLaLng);
+
+              // Update Driver Realtime Location on the Map
+              getDriverLocationUpdateAtRealTime();
             },
           ),
           // User Interface
@@ -293,7 +430,7 @@ class _NewTripScreenState extends State<NewTripScreen> {
                   children: [
                     // Duration from Pickup to Drop Off
                     Text(
-                      "18 mins",
+                      durationFromOriginToDestination,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

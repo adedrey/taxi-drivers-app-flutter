@@ -13,6 +13,7 @@ UserModel? userModelCurrentInfo;
 // Online Driver Data
 DriverData onlineDriverData = DriverData();
 StreamSubscription<Position>? streamSubscriptionPosition;
+StreamSubscription<Position>? streamSubscriptionDriverLivePosition;
 AssetsAudioPlayer audioPlayer = AssetsAudioPlayer();
 // Driver Current Position
 Position? driverCurrentPosiiton;
