@@ -332,6 +332,7 @@ class _NewTripScreenState extends State<NewTripScreen> {
         // Get the user pickup location
         destinationLatLng = widget.userRideRequestInformation!.originLatLng!;
       } else {
+        // arrived
         // get the user destination location
         destinationLatLng =
             widget.userRideRequestInformation!.destinationLatLng!;
@@ -538,7 +539,36 @@ class _NewTripScreenState extends State<NewTripScreen> {
                     ),
                     // Button
                     ElevatedButton.icon(
-                      onPressed: () {},
+                      onPressed: () async {
+                        if (rideRequestStatus == "accepted") {
+                          // Driver has arrived at user pickup location
+                          rideRequestStatus = "arrived";
+                          FirebaseDatabase.instance
+                              .ref()
+                              .child("All Ride Requests")
+                              .child(widget
+                                  .userRideRequestInformation!.rideRequestId!)
+                              .child("status")
+                              .set(rideRequestStatus);
+                          setState(() {
+                            buttonTitle = "Start Trip"; // Start the trip
+                            buttonColor = Colors.lightGreenAccent;
+                          });
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false, // make it indismissible
+                            builder: (context) => ProgressDialog(
+                                message: "Setting trip route..."),
+                          );
+                          // Draw Polyline for the trip - User pickup location to Destination Location
+                          await _drawPolyLineFromOriginToDestination(
+                              widget.userRideRequestInformation!.originLatLng!,
+                              widget.userRideRequestInformation!
+                                  .destinationLatLng!);
+
+                          Navigator.pop(context); //Dismiss dialog box
+                        }
+                      },
                       style: ElevatedButton.styleFrom(primary: buttonColor),
                       label: Text(
                         buttonTitle,
