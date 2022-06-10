@@ -96,4 +96,37 @@ class AssistantMethods {
       driverCurrentPosiiton!.longitude,
     );
   }
+
+  // Calculate Fare AMount
+
+  static calculuateFareAmountFromOriginToDestination(
+      DirectionDetailsInfo directionDetailsInfo) {
+    // Calculate how much to charge per minute
+    double timeTraveledFareAmountPerMinute =
+        (directionDetailsInfo.duration_value! / 60) * 0.1;
+    // Calcate how much per kilometre
+    double distanceTraveledFareAMountPerKilometer =
+        (directionDetailsInfo.distance_value! / 1000) * 0.1;
+    // Calcutae total fare amount to get overall fare amount from origin to destination
+
+    double totalFareAmount = timeTraveledFareAmountPerMinute +
+        distanceTraveledFareAMountPerKilometer;
+    // To convert from USD to other currency
+    // 1 USD = 400 Naira
+    double localCurrencyTotalFareAmount = totalFareAmount * 400;
+    // Validate Amount with Vehicle Type
+    if (driverVehicleType == "bike") {
+      double resultFareAmount = (localCurrencyTotalFareAmount.truncate()) / 2.0;
+      return resultFareAmount;
+    } else if (driverVehicleType == "uber-go") {
+      double resultFareAmount = localCurrencyTotalFareAmount.truncateToDouble();
+      return resultFareAmount;
+    } else if (driverVehicleType == "uber-x") {
+      double resultFareAmount = (localCurrencyTotalFareAmount.truncate()) * 2.0;
+      return resultFareAmount;
+    } else {
+      double resultFareAmount = localCurrencyTotalFareAmount.truncateToDouble();
+      return resultFareAmount;
+    }
+  }
 }

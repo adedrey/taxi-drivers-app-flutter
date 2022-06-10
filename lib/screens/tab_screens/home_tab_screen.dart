@@ -153,6 +153,8 @@ class _HomeTabScreenState extends State<HomeTabScreen> {
             (snapShot.snapshot.value as Map)["car_details"]["car_no"];
         onlineDriverData.car_type =
             (snapShot.snapshot.value as Map)["car_details"]["car_type"];
+        driverVehicleType =
+            (snapShot.snapshot.value as Map)["car_details"]["car_type"];
       } else {
         Fluttertoast.showToast(msg: "User not available at the moment.");
       }

@@ -17,3 +17,6 @@ StreamSubscription<Position>? streamSubscriptionDriverLivePosition;
 AssetsAudioPlayer audioPlayer = AssetsAudioPlayer();
 // Driver Current Position
 Position? driverCurrentPosiiton;
+
+// Vehicle Type
+String? driverVehicleType = "";

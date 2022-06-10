@@ -356,6 +356,53 @@ class _NewTripScreenState extends State<NewTripScreen> {
     }
   }
 
+  // End User Trip after reaching Destination
+  endTripNow() async {
+    // Please Wait Dialog Box
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => ProgressDialog(message: "Please wait"),
+    );
+
+    // GET TRIP DIRECTION DETAILS - DISTANCE TRAVELLED
+    // In order to prevent driver from scamming the user
+    // We should get the Driver current position and User Pickup/Origin Position
+    // Instead of using the default widget userTrip Details from the driver position to user destinaition
+    var currentDriverPostionLatLng = LatLng(
+      onlineDriverCurrentPosition!.latitude,
+      onlineDriverCurrentPosition!.longitude,
+    );
+    var tripDirectionDetails =
+        await AssistantMethods.obtainOriginToDestinationDirectionDetails(
+            currentDriverPostionLatLng,
+            widget.userRideRequestInformation!.originLatLng!);
+
+    // FARE AMOUNT
+    double totalFareAmount =
+        AssistantMethods.calculuateFareAmountFromOriginToDestination(
+            tripDirectionDetails!);
+    // Save fare amount in the DB of ride request
+    FirebaseDatabase.instance
+        .ref()
+        .child("All Ride Requests")
+        .child(widget.userRideRequestInformation!.rideRequestId!)
+        .child("fareAmount")
+        .set(totalFareAmount.toString());
+    // Save ride status in the DB of ride request
+    FirebaseDatabase.instance
+        .ref()
+        .child("All Ride Requests")
+        .child(widget.userRideRequestInformation!.rideRequestId!)
+        .child("status")
+        .set("ended");
+
+    // Stop StreamSubScription
+    streamSubscriptionDriverLivePosition!.cancel();
+
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     // To Add Active Driver MarkerIcon
@@ -567,6 +614,30 @@ class _NewTripScreenState extends State<NewTripScreen> {
                                   .destinationLatLng!);
 
                           Navigator.pop(context); //Dismiss dialog box
+                        }
+                        // Driver has reached the user pickup location
+                        // User is in the Driver's car - Start Trip
+                        // Update arrived to OnTrip
+                        // Realtime location is still on
+                        else if (rideRequestStatus == "arrived") {
+                          // Driver is ready to start trip
+                          rideRequestStatus = "ontrip";
+                          FirebaseDatabase.instance
+                              .ref()
+                              .child("All Ride Requests")
+                              .child(widget
+                                  .userRideRequestInformation!.rideRequestId!)
+                              .child("status")
+                              .set(rideRequestStatus);
+                          setState(() {
+                            buttonTitle = "End Trip"; // Start the trip
+                            buttonColor = Colors.redAccent;
+                          });
+                        }
+                        //  Driver/User reached to the dropoff Destination Location -End Trip Button
+                        else if (rideRequestStatus == "ontrip") {
+                          // Method to End Trip
+                          endTripNow();
                         }
                       },
                       style: ElevatedButton.styleFrom(primary: buttonColor),
