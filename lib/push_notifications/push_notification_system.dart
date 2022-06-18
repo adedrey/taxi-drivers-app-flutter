@@ -50,6 +50,7 @@ class PushNotificationSystem {
   readUserRideReequestInformation(
       String userRideRequestId, BuildContext context) {
 // Get ride request from DB
+    print("User ride request is" + userRideRequestId);
     FirebaseDatabase.instance
         .ref()
         .child("All Ride Requests")
@@ -59,7 +60,6 @@ class PushNotificationSystem {
       // check if request is not null
       if (snapData.snapshot.value != null) {
         // Play notification sound
-        print("was here");
         audioPlayer.open(Audio("assets/music/music_notification.mp3"));
         audioPlayer.play();
         // retrieve data

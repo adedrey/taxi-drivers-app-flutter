@@ -5,6 +5,7 @@ import 'package:drivers_app/models/user_ride_request_information.dart';
 import 'package:drivers_app/screens/new_trip_screen.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class NotificationDialogBox extends StatefulWidget {
@@ -188,8 +189,44 @@ class _NotificationDialogBoxState extends State<NotificationDialogBox> {
                           audioPlayer.stop();
                           audioPlayer = AssetsAudioPlayer();
                           // Cancel the RideRequest
-
-                          Navigator.pop(context);
+                          // Remove RieRequest From All RIde Request Table
+                          FirebaseDatabase.instance
+                              .ref()
+                              .child("All Ride Requests")
+                              .child(widget
+                                  .userRideRequestInformation!.rideRequestId!)
+                              .remove()
+                              .then((snapShot) {
+                            // Change Driver ride status back to Idle
+                            FirebaseDatabase.instance
+                                .ref()
+                                .child("drivers")
+                                .child(currentFirebaseUser!.uid)
+                                .child("newRideStatus")
+                                .set("idle")
+                                .then((snapShot) {
+                              // Remove rideRequestID from driver tripHistory in the DB
+                              FirebaseDatabase.instance
+                                  .ref()
+                                  .child("drivers")
+                                  .child(currentFirebaseUser!.uid)
+                                  .child("tripsHistory")
+                                  .child(widget.userRideRequestInformation!
+                                      .rideRequestId!)
+                                  .remove();
+                            }).then((snapShot) {
+                              Fluttertoast.showToast(
+                                  msg:
+                                      "Ride Request has been cancelled successfully. Restart App now");
+                            });
+                          });
+                          // Restart App
+                          Future.delayed(
+                            const Duration(milliseconds: 2000),
+                            () {
+                              SystemNavigator.pop();
+                            },
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           primary: Colors.red,

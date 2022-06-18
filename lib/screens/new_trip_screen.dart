@@ -1,11 +1,11 @@
 import 'package:drivers_app/global/global.dart';
 import 'package:drivers_app/models/user_ride_request_information.dart';
+import 'package:drivers_app/widgets/fare_amount_collection_dialog.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:provider/provider.dart';
 import 'dart:async';
 
 import '../assistants/assistant_methods.dart';
@@ -88,8 +88,6 @@ class _NewTripScreenState extends State<NewTripScreen> {
     var directionDetailsInfo =
         await AssistantMethods.obtainOriginToDestinationDirectionDetails(
             originLatLng, destinationLatLng);
-    print("Direction Info");
-    print(directionDetailsInfo);
     // Cancel the show dialog
     Navigator.of(context).pop();
     // Decode the encoded points
@@ -124,6 +122,7 @@ class _NewTripScreenState extends State<NewTripScreen> {
       polyLineSet.add(polyLine);
     });
     // Fix polyline zoom
+    // Calculate zoom based on distance
     LatLngBounds boundsLatLng;
     if (originLatLng.latitude > destinationLatLng.latitude &&
         originLatLng.longitude > destinationLatLng.longitude) {
@@ -401,6 +400,49 @@ class _NewTripScreenState extends State<NewTripScreen> {
     streamSubscriptionDriverLivePosition!.cancel();
 
     Navigator.pop(context);
+
+    // Display Fare Amount in dialog box
+    showDialog(
+      context: context,
+      builder: (context) =>
+          FareAmountCollectionDialog(totalFareAmount: totalFareAmount),
+    );
+
+    // Save Fare AMount to Driver Total Earnings
+    saveFareAmountToDriverEarnings(totalFareAmount);
+  }
+
+  // Save Fare AMount to Driver Total Earnings
+  saveFareAmountToDriverEarnings(double totalFareAmount) {
+    FirebaseDatabase.instance
+        .ref()
+        .child("drivers")
+        .child(currentFirebaseUser!.uid)
+        .child("earnings")
+        .once()
+        .then(
+      (snapShot) {
+        // Earnings subchild exist in DB
+        if (snapShot.snapshot.value != null) {
+          double oldEarnings = double.parse(snapShot.snapshot.value.toString());
+          double driverTotalEarnings = oldEarnings + totalFareAmount;
+          FirebaseDatabase.instance
+              .ref()
+              .child("drivers")
+              .child(currentFirebaseUser!.uid)
+              .child("earnings")
+              .set(driverTotalEarnings.toString());
+        } else {
+          // Earnings subchild does not exist in DB
+          FirebaseDatabase.instance
+              .ref()
+              .child("drivers")
+              .child(currentFirebaseUser!.uid)
+              .child("earnings")
+              .set(totalFareAmount.toString());
+        }
+      },
+    );
   }
 
   @override

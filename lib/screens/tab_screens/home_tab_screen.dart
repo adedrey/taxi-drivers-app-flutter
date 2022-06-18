@@ -53,7 +53,6 @@ class _HomeTabScreenState extends State<HomeTabScreen> {
   void _checkIfLocationPermissionAllowed() async {
     _locationPermission = await Geolocator.requestPermission();
     if (_locationPermission == LocationPermission.denied) {
-      print("Access denied");
       _locationPermission = await Geolocator.requestPermission();
     }
   }
