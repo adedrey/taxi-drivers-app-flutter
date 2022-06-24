@@ -199,12 +199,28 @@ class AssistantMethods {
         .then((snap) {
       if (snap.snapshot.value != null) {
         String driverEarnings = snap.snapshot.value.toString();
-        print("Earnings: " + driverEarnings);
         Provider.of<AppInfo>(context, listen: false)
             .updateDriverTotalEarnings(driverEarnings);
       }
     });
     // Read Keys for online Driver
     readTripKeysForOnlineDriver(context);
+  }
+
+  // Read Driver Ratings
+  static void readDriverRatings(context) {
+    FirebaseDatabase.instance
+        .ref()
+        .child("drivers")
+        .child(fAuth.currentUser!.uid)
+        .child("ratings")
+        .once()
+        .then((snap) {
+      if (snap.snapshot.value != null) {
+        String driverRatings = snap.snapshot.value.toString();
+        Provider.of<AppInfo>(context, listen: false)
+            .updateDriverTotalRatings(driverRatings);
+      }
+    });
   }
 }

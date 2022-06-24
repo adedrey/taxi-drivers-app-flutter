@@ -46,6 +46,7 @@ dependencies:
   flutter_geofire: ^2.0.1
   firebase_messaging: ^11.4.1
   assets_audio_player: ^3.0.4+3
+  smooth_star_rating_nsafe: ^1.0.0+1
 
 dev_dependencies:
   flutter_test:

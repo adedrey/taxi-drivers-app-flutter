@@ -48,6 +48,9 @@ class _HomeTabScreenState extends State<HomeTabScreen> {
     String humanReadableAddress =
         await AssistantMethods.searchAddressForGeographicCoordinates(
             driverCurrentPosiiton!, context);
+
+    // Get Driver Ratings
+    AssistantMethods.readDriverRatings(context);
   }
 
   void _checkIfLocationPermissionAllowed() async {
