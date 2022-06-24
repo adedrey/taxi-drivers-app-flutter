@@ -161,6 +161,9 @@ class _HomeTabScreenState extends State<HomeTabScreen> {
     PushNotificationSystem pushNotificationSystem = PushNotificationSystem();
     pushNotificationSystem.initializeCloudMessaging(context);
     pushNotificationSystem.generateAndGetToken();
+
+    // Read Keys for online Driver
+    AssistantMethods.readDriverEarnings(context);
   }
 
   @override

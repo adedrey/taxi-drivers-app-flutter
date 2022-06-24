@@ -1,4 +1,5 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -7,6 +8,7 @@ import '../global/global.dart';
 import '../global/map_key.dart';
 import '../infoHandler/app_info.dart';
 import '../models/direction_details_info.dart';
+import '../models/trip_history_model.dart';
 import '../models/user_model.dart';
 import './request_assistant.dart';
 
@@ -128,5 +130,81 @@ class AssistantMethods {
       double resultFareAmount = localCurrencyTotalFareAmount.truncateToDouble();
       return resultFareAmount;
     }
+  }
+
+  // Retrieve the trip keys for online driver
+  // trip key = ride request key
+  static readTripKeysForOnlineDriver(BuildContext context) {
+    FirebaseDatabase.instance
+        .ref()
+        .child("All Ride Requests")
+        .orderByChild("driverId")
+        .equalTo(fAuth.currentUser!.uid)
+        .once()
+        .then((snap) {
+      if (snap.snapshot.value != null) {
+        // get all available trips
+        Map keysTripsId = snap.snapshot.value as Map;
+        // Count user  total trips
+        int overAllTripsCounter = keysTripsId.length;
+        // Share with app using Provider
+        Provider.of<AppInfo>(context, listen: false)
+            .updateOverallTripsCounter(overAllTripsCounter);
+        // share ride request ids with Provider
+        List<String> tripsKeysList = [];
+        keysTripsId.forEach((key, value) {
+          tripsKeysList.add(key);
+        });
+        // share with app using Provider
+        Provider.of<AppInfo>(context, listen: false)
+            .updateOverallTripsKeys(tripsKeysList);
+
+        // get trips keys data - read trips complete information...
+        readTripHistoryInformation(context);
+      }
+    });
+  }
+
+  // get trips keys data - read trips complete information...
+  static void readTripHistoryInformation(BuildContext context) {
+    var tripsAllKeys =
+        Provider.of<AppInfo>(context, listen: false).historyTripKeysList;
+    for (String EachKey in tripsAllKeys) {
+      FirebaseDatabase.instance
+          .ref()
+          .child("All Ride Requests")
+          .child(EachKey)
+          .once()
+          .then((snap) {
+        // Add only trips that has been completed - ended
+        // Initialize from the Model class
+        var eachTripHistory = TripHistoryModel.fromDataSnapShot(snap.snapshot);
+        if ((snap.snapshot.value as Map)["status"] == "ended") {
+          // Update OverallTrips History Data
+          Provider.of<AppInfo>(context, listen: false)
+              .updateOverAllTripsHistoryInformation(eachTripHistory);
+        }
+      });
+    }
+  }
+
+  // readDriverEarnings
+  static void readDriverEarnings(BuildContext context) {
+    FirebaseDatabase.instance
+        .ref()
+        .child("drivers")
+        .child(fAuth.currentUser!.uid)
+        .child("earnings")
+        .once()
+        .then((snap) {
+      if (snap.snapshot.value != null) {
+        String driverEarnings = snap.snapshot.value.toString();
+        print("Earnings: " + driverEarnings);
+        Provider.of<AppInfo>(context, listen: false)
+            .updateDriverTotalEarnings(driverEarnings);
+      }
+    });
+    // Read Keys for online Driver
+    readTripKeysForOnlineDriver(context);
   }
 }
