@@ -31,10 +31,6 @@ class _HomeTabScreenState extends State<HomeTabScreen> {
 
   var geoLocator = Geolocator();
   LocationPermission? _locationPermission;
-  String statusText = "Now Offline";
-  Color statusButtonColor = Colors.grey;
-  bool isDriverActive = false;
-
   void _locateDriverPosition() async {
     Position currentPosition = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);

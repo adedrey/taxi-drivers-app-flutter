@@ -5,14 +5,16 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:smooth_star_rating_nsafe/smooth_star_rating.dart';
 
+import '../../global/global.dart';
+
 class RatingsTabScreen extends StatefulWidget {
+  const RatingsTabScreen({Key? key}) : super(key: key);
   @override
   _RatingsTabScreenState createState() => _RatingsTabScreenState();
 }
 
 class _RatingsTabScreenState extends State<RatingsTabScreen> {
   double ratingsFromDBNumber = 0.0;
-  String titleStarRating = "Good";
   @override
   void initState() {
     // TODO: implement initState
